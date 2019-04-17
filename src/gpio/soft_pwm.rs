@@ -134,18 +134,20 @@ impl SoftPwm {
                     while let Ok(msg) = receiver.try_recv() {
                         match msg {
                             Msg::Reconfigure(period, pulse_width) => {
+                                log::trace!("Received reconfigure message.");
                                 // Reconfigure period and pulse width
                                 pulse_width_ns = (pulse_width.as_secs() as i64 * 1_000_000_000)
                                     + pulse_width.subsec_nanos() as i64;
 
                                 period_ns = (period.as_secs() as i64 * 1_000_000_000)
                                     + period.subsec_nanos() as i64;
-
+                                log::debug!("Reconfigured with period {:?} and pulse width {:?}", period, pulse_width);
                                 if pulse_width_ns > period_ns {
                                     pulse_width_ns = period_ns;
                                 }
                             }
                             Msg::Stop => {
+                                log::trace!("Received stop message.");
                                 // The main thread asked us to stop
                                 return Ok(());
                             }
@@ -180,6 +182,7 @@ impl SoftPwm {
     }
 
     pub(crate) fn reconfigure(&mut self, period: Duration, pulse_width: Duration) {
+        log::trace!("Reconfiguring.");
         let _ = self.sender.send(Msg::Reconfigure(period, pulse_width));
         unsafe {
             MSG_WAITING.store(true, Ordering::Release);
