@@ -137,7 +137,7 @@ impl SoftPwm {
                 gpio_state.gpio_mem.set_low(pin);
 
                 // This is slightly faster than directly checking try_recv()
-                if unsafe { MSG_WAITING.compare_and_swap(true, false, Ordering::AcqRel) } {
+                if unsafe { MSG_WAITING.compare_and_swap(true, false, Ordering::SeqCst) } {
                     while let Ok(msg) = receiver.try_recv() {
                         match msg {
                             Msg::Reconfigure(period, pulse_width) => {
@@ -197,14 +197,14 @@ impl SoftPwm {
         log::trace!("Reconfiguring.");
         let _ = self.sender.send(Msg::Reconfigure(period, pulse_width));
         unsafe {
-            MSG_WAITING.store(true, Ordering::Release);
+            MSG_WAITING.store(true, Ordering::SeqCst);
         }
     }
 
     pub(crate) fn stop(&mut self) -> Result<()> {
         let _ = self.sender.send(Msg::Stop);
         unsafe {
-            MSG_WAITING.store(true, Ordering::Release);
+            MSG_WAITING.store(true, Ordering::SeqCst);
         }
 
         if let Some(pwm_thread) = self.pwm_thread.take() {
