@@ -98,6 +98,8 @@ impl SoftPwm {
                 libc::prctl(PR_SET_TIMERSLACK, 1);
             }
 
+            log::trace!("Setting up PWM thread with period {:?} and pulse width {:?}", period, pulse_width);
+
             let mut period_ns =
                 (period.as_secs() as i64 * 1_000_000_000) + period.subsec_nanos() as i64;
 
