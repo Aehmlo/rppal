@@ -137,7 +137,7 @@ impl SoftPwm {
                 gpio_state.gpio_mem.set_low(pin);
 
                 // This is slightly faster than directly checking try_recv()
-                if unsafe { MSG_WAITING.compare_and_swap(true, false, Ordering::SeqCst) } {
+                /*if unsafe { MSG_WAITING.compare_and_swap(true, false, Ordering::SeqCst) } {*/
                     while let Ok(msg) = receiver.try_recv() {
                         match msg {
                             Msg::Reconfigure(period, pulse_width) => {
@@ -165,7 +165,7 @@ impl SoftPwm {
                             }
                         }
                     }
-                }
+                /*}*/
 
                 let remaining_ns = period_ns - (get_time_ns() - start_ns);
 
