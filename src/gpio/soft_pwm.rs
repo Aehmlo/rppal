@@ -98,7 +98,12 @@ impl SoftPwm {
                 libc::prctl(PR_SET_TIMERSLACK, 1);
             }
 
-            log::trace!("Setting up PWM thread with period {:?} and pulse width {:?}", period, pulse_width);
+            log::trace!(
+                "Setting up PWM thread with period {:?} and pulse width {:?} for pin {}",
+                period,
+                pulse_width,
+                pin
+            );
 
             let mut period_ns =
                 (period.as_secs() as i64 * 1_000_000_000) + period.subsec_nanos() as i64;
@@ -136,20 +141,25 @@ impl SoftPwm {
                     while let Ok(msg) = receiver.try_recv() {
                         match msg {
                             Msg::Reconfigure(period, pulse_width) => {
-                                log::trace!("Received reconfigure message.");
+                                log::trace!("Received reconfigure message for pin {}", pin);
                                 // Reconfigure period and pulse width
                                 pulse_width_ns = (pulse_width.as_secs() as i64 * 1_000_000_000)
                                     + pulse_width.subsec_nanos() as i64;
 
                                 period_ns = (period.as_secs() as i64 * 1_000_000_000)
                                     + period.subsec_nanos() as i64;
-                                log::debug!("Reconfigured with period {:?} and pulse width {:?}", period, pulse_width);
+                                log::debug!(
+                                    "Reconfigured with period {:?} and pulse width {:?} for pin {}",
+                                    period,
+                                    pulse_width,
+                                    pin
+                                );
                                 if pulse_width_ns > period_ns {
                                     pulse_width_ns = period_ns;
                                 }
                             }
                             Msg::Stop => {
-                                log::trace!("Received stop message.");
+                                log::trace!("Received stop message for pin {}.", pin);
                                 // The main thread asked us to stop
                                 return Ok(());
                             }
